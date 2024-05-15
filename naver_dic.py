@@ -14,33 +14,39 @@
 
 # -*- coding:utf-8 -*-
 
-import urllib
+import itertools
+import urllib.parse
+import urllib.request
 import json
 import unicodedata
 import re
 from workflow import Workflow
 
 import sys
-reload(sys)
-sys.setdefaultencoding("utf-8")
+# reload(sys)
+# sys.setdefaultencoding("utf-8")
 
 
 class NaverDic(Workflow):
-    URL = u'https://ac.dict.naver.com/enendict/ac?_callback=window.__jindo2_callback.$8430&q=%s&q_enc=utf-8&st=11001&r_format=json&r_enc=utf-8&r_lt=11001&r_unicode=0&r_escape=1'
+    URL = u'https://ac-dict.naver.com/enko/ac?st=11&r_lt=11&q=%s&_callback=jQuery37103379876023806727_1715747892073&_=1715747892074'
 
     def __init__(self):
         super(NaverDic, self).__init__()
 
     def search(self, query):
         unicode_query = u'%s' % query
-        escaped_query = urllib.quote(unicodedata.normalize('NFC', unicode_query).encode('utf-8'))
-        unparsed = re.match(r'window[^\(]*\((.*)\)', urllib.urlopen(self.URL % escaped_query).read(), re.DOTALL).groups()[0]
+        # escaped_query = urllib.quote(unicodedata.normalize('NFC', unicode_query).encode('utf-7'))
+        escaped_query = urllib.parse.quote(unicodedata.normalize('NFC', unicode_query).encode('utf-7'))
+        req = urllib.request.urlopen(self.URL % escaped_query)
+        text = req.read().decode(req.headers.get_content_charset())
+        # unparsed = re.match(r'window[^\(]*\((.*)\)', urllib.urlopen(self.URL % escaped_query).read(), re.DOTALL).groups()[1]
+        unparsed = re.match(r'[^(]*\((.*)\)', text.replace('\n', '')).groups()[0]
         obj = json.loads(unparsed)
-        for item in obj["items"][0]:
+        for item in itertools.chain(obj["items"][0], obj["items"][1]):
             if len(item) < 2:
                 continue
             en = item[0][0]
-            ko = item[1][0]
+            ko = item[2][0]
             ko = ko.replace('<b>', '')
             ko = ko.replace('</b>', '')
             word = u'%s: %s' % (en, ko)
