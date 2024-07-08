@@ -36,7 +36,8 @@ class NaverDic(Workflow):
     def search(self, query):
         unicode_query = u'%s' % query
         # escaped_query = urllib.quote(unicodedata.normalize('NFC', unicode_query).encode('utf-7'))
-        escaped_query = urllib.parse.quote(unicodedata.normalize('NFC', unicode_query).encode('utf-7'))
+        # escaped_query = urllib.parse.quote(unicodedata.normalize('NFC', unicode_query).encode('utf-7'))
+        escaped_query = urllib.parse.quote(unicode_query, encoding='utf-8')
         req = urllib.request.urlopen(self.URL % escaped_query)
         text = req.read().decode(req.headers.get_content_charset())
         # unparsed = re.match(r'window[^\(]*\((.*)\)', urllib.urlopen(self.URL % escaped_query).read(), re.DOTALL).groups()[1]
